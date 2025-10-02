@@ -1,0 +1,23 @@
+﻿using GeminiInventory.Infrastructure.Persistence;
+using GeminiInventory.Infrastructure.Persistence.Interceptors;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GeminiInventory.Infrastructure;
+
+public static class DependencyInjectionRegister
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<GeminiInventoryDbContext>(options =>
+        {
+            var connectionString = configuration.GetConnectionString("GeminiInventoryDbContext");
+            options.UseNpgsql(connectionString);
+        });
+
+        services.AddScoped<PublishDomainEventsInterceptor>();
+
+        return services;
+    }
+}
