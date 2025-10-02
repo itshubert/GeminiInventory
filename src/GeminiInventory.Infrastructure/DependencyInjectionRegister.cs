@@ -1,5 +1,7 @@
-﻿using GeminiInventory.Infrastructure.Persistence;
+﻿using GeminiInventory.Application.Common.Persistence.Interfaces;
+using GeminiInventory.Infrastructure.Persistence;
 using GeminiInventory.Infrastructure.Persistence.Interceptors;
+using GeminiInventory.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +19,8 @@ public static class DependencyInjectionRegister
         });
 
         services.AddScoped<PublishDomainEventsInterceptor>();
+        services.AddScoped<IInventoryRepository, InventoryRepository>();
+        services.AddScoped<IReservationRepository, ReservationRepository>();
 
         return services;
     }
