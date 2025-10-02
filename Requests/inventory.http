@@ -1,0 +1,12 @@
+@HostAddress=https://localhost:4007
+
+POST {{HostAddress}}/inventory/by-products
+Content-Type: application/json
+
+{
+    "productIds": [
+    "00d5d543-71a1-4149-ae8b-6695a38d448c",
+    "1a308cf3-2bea-45cd-9575-c396db342ad3",
+    "31b52f2c-15e9-4c1c-a16b-cea8b399c079"
+    ]
+}

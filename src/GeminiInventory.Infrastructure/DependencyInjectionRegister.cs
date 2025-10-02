@@ -22,6 +22,8 @@ public static class DependencyInjectionRegister
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
 
+        // TODO: BackgroundService to poll SQS for OrderSubmitted
+
         return services;
     }
 }

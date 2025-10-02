@@ -17,6 +17,14 @@ public sealed class InventoryRepository : BaseRepository, IInventoryRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IEnumerable<Inventory>> GetByProductsAsync(IEnumerable<Guid> productIds, CancellationToken cancellationToken)
+    {
+        return await _context.Inventories
+            .AsNoTracking()
+            .Where(i => productIds.Contains(i.ProductId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Inventory inventory, CancellationToken cancellationToken)
     {
         await _context.Inventories.AddAsync(inventory, cancellationToken);

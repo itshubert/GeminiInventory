@@ -56,4 +56,6 @@ public sealed class Inventory : AggregateRoot<InventoryId>
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    // TODO: Publish to SQS InventoryUpdated event
+
 }
