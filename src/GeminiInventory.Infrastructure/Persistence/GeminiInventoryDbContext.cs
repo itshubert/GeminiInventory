@@ -1,37 +1,32 @@
+using GeminiInventory.Domain.InventoryAggregate;
+using GeminiInventory.Domain.ReservationAggregate;
+using GeminiInventory.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeminiInventory.Infrastructure.Persistence;
 
 public sealed class GeminiInventoryDbContext : DbContext
 {
-    public GeminiInventoryDbContext(DbContextOptions<GeminiInventoryDbContext> options)
+    private readonly PublishDomainEventsInterceptor _publishDomainEventsInterceptor;
+
+    public GeminiInventoryDbContext(DbContextOptions<GeminiInventoryDbContext> options, PublishDomainEventsInterceptor publishDomainEventsInterceptor)
         : base(options)
     {
+        _publishDomainEventsInterceptor = publishDomainEventsInterceptor;
     }
 
-    // Define DbSets for your entities here
-    // public DbSet<Product> Products { get; set; }
-    // public DbSet<Category> Categories { get; set; }
+    public DbSet<Inventory> Inventories { get; set; }
+    public DbSet<Reservation> Reservations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(GeminiInventoryDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+    }
 
-        // Configure your entity mappings here
-        // modelBuilder.Entity<Product>(entity =>
-        // {
-        //     entity.ToTable("Products");
-        //     entity.HasKey(e => e.Id);
-        //     entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-        //     // Additional configurations...
-        // });
-
-        // modelBuilder.Entity<Category>(entity =>
-        // {
-        //     entity.ToTable("Categories");
-        //     entity.HasKey(e => e.Id);
-        //     entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-        //     // Additional configurations...
-        // });
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.AddInterceptors(_publishDomainEventsInterceptor);
+        base.OnConfiguring(optionsBuilder);
     }
 }
