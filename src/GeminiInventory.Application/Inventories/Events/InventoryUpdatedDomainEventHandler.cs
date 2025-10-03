@@ -1,40 +1,44 @@
-using System.Diagnostics;
+using GeminiInventory.Application.Common.Messaging;
 using GeminiInventory.Domain.InventoryAggregate.Events;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace GeminiInventory.Application.Inventories.Events;
 
 public sealed class InventoryUpdatedDomainEventHandler : INotificationHandler<InventoryUpdatedDomainEvent>
 {
-    // private readonly IEventBridgePublisher _eventBridgePublisher;
+    private readonly IEventBridgePublisher _eventBridgePublisher;
+    private readonly ILogger<InventoryUpdatedDomainEventHandler> _logger;
 
-    // public InventoryUpdatedDomainEventHandler(IEventBridgePublisher eventBridgePublisher)
-    // {
-    //     _eventBridgePublisher = eventBridgePublisher;
-    // }
+    public InventoryUpdatedDomainEventHandler(
+        IEventBridgePublisher eventBridgePublisher,
+        ILogger<InventoryUpdatedDomainEventHandler> logger)
+    {
+        _eventBridgePublisher = eventBridgePublisher;
+        _logger = logger;
+    }
 
     public async Task Handle(InventoryUpdatedDomainEvent notification, CancellationToken cancellationToken)
     {
         var eventDetail = new
         {
-            notification.InventoryId,
-            notification.ProductId,
-            notification.QuantityAvailable,
-            notification.QuantityReserved,
-            notification.LastRestockDate,
-            notification.MinimumStockLevel,
-            notification.UpdatedAt
+            inventoryId = notification.InventoryId.Value,
+            productId = notification.ProductId,
+            quantityAvailable = notification.QuantityAvailable,
+            quantityReserved = notification.QuantityReserved,
+            lastRestockDate = notification.LastRestockDate,
+            minimumStockLevel = notification.MinimumStockLevel,
+            updatedAt = notification.UpdatedAt
         };
 
-        Debug.WriteLine("InventoryUpdatedDomainEvent handled:");
-        Debug.WriteLine(System.Text.Json.JsonSerializer.Serialize(eventDetail));
+        _logger.LogInformation(
+            "Publishing InventoryLevelChanged event for ProductId: {ProductId}, QuantityAvailable: {QuantityAvailable}",
+            notification.ProductId,
+            notification.QuantityAvailable);
 
-        await ValueTask.CompletedTask;
-
-        // await _eventBridgePublisher.PublishEventAsync(
-        //     source: "GeminiInventory",
-        //     detailType: "InventoryUpdated",
-        //     detail: eventDetail,
-        //     cancellationToken: cancellationToken);
+        await _eventBridgePublisher.PublishAsync(
+            detailType: "InventoryLevelChanged",
+            eventDetail: eventDetail,
+            cancellationToken: cancellationToken);
     }
 }

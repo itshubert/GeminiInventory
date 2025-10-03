@@ -81,6 +81,7 @@ public sealed class Inventory : AggregateRoot<InventoryId>
             UpdatedAt));
     }
 
-    // TODO: Publish to SQS InventoryUpdated event
+    // TODO: Publish to SQS InventoryReserved event which is consumed by Order service to update order status to 'InventoryReserved'
+    // TODO: Publish to SQS InventoryLevelChanged event which is consumed by other services (e.g. Catalog Service) 
 
 }
