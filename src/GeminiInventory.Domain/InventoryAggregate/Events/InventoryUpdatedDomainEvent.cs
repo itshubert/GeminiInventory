@@ -1,6 +1,5 @@
 using GeminiInventory.Domain.Common.Models;
 using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
-using MediatR;
 
 namespace GeminiInventory.Domain.InventoryAggregate.Events;
 
