@@ -13,6 +13,14 @@ public sealed class InventoryRepository : BaseRepository, IInventoryRepository
     public async Task<Inventory?> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken)
     {
         return await _context.Inventories
+            .AsNoTracking()
+            .Where(i => i.ProductId == productId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Inventory?> GetByProductIdForUpdateAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        return await _context.Inventories
             .Where(i => i.ProductId == productId)
             .FirstOrDefaultAsync(cancellationToken);
     }

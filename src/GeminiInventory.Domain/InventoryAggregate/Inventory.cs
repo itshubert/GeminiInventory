@@ -1,4 +1,5 @@
 using GeminiInventory.Domain.Common.Models;
+using GeminiInventory.Domain.InventoryAggregate.Events;
 using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
 
 namespace GeminiInventory.Domain.InventoryAggregate;
@@ -47,6 +48,21 @@ public sealed class Inventory : AggregateRoot<InventoryId>
             minimumStockLevel);
     }
 
+    public void UpdateStockLevel(int newStockLevel)
+    {
+        QuantityAvailable = newStockLevel;
+        UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new InventoryUpdatedDomainEvent(
+            Id,
+            ProductId,
+            QuantityAvailable,
+            QuantityReserved,
+            LastRestockDate,
+            MinimumStockLevel,
+            UpdatedAt));
+    }
+
     public void UpdateStock(int quantityAvailable, int quantityReserved, DateTimeOffset lastRestockDate, int minimumStockLevel)
     {
         QuantityAvailable = quantityAvailable;
@@ -54,6 +70,15 @@ public sealed class Inventory : AggregateRoot<InventoryId>
         LastRestockDate = lastRestockDate;
         MinimumStockLevel = minimumStockLevel;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new InventoryUpdatedDomainEvent(
+            Id,
+            ProductId,
+            QuantityAvailable,
+            QuantityReserved,
+            LastRestockDate,
+            MinimumStockLevel,
+            UpdatedAt));
     }
 
     // TODO: Publish to SQS InventoryUpdated event

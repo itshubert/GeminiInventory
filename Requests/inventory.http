@@ -10,3 +10,7 @@ Content-Type: application/json
     "31b52f2c-15e9-4c1c-a16b-cea8b399c079"
     ]
 }
+
+###
+
+POST {{HostAddress}}/inventory/product/00d5d543-71a1-4149-ae8b-6695a38d448c/adjust-stock-level/500
