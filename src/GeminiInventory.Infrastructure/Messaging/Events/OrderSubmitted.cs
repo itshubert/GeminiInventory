@@ -2,7 +2,7 @@ namespace GeminiInventory.Infrastructure.Messaging.Events;
 
 public sealed class OrderSubmitted
 {
-    public Guid OrderId { get; init; }
+    public Guid Id { get; init; }
     public Guid CustomerId { get; init; }
     public DateTimeOffset OrderDate { get; init; }
     public string Status { get; init; } = string.Empty;

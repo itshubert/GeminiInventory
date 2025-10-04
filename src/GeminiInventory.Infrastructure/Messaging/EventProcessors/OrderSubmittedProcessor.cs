@@ -15,7 +15,7 @@ public sealed class OrderSubmittedProcessor : IEventProcessor<OrderSubmitted>
 
     public async Task ProcessEventAsync(OrderSubmitted @event, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Processing OrderSubmitted event: {OrderId}", @event.OrderId);
+        _logger.LogInformation("Processing OrderSubmitted event: {OrderId}", @event.Id);
         // Add your event processing logic here
 
         await ValueTask.CompletedTask;

@@ -1,4 +1,6 @@
-﻿using Amazon.EventBridge;
+﻿using Amazon;
+using Amazon.EventBridge;
+using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using GeminiInventory.Application.Common.Messaging;
 using GeminiInventory.Application.Common.Persistence.Interfaces;
@@ -12,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace GeminiInventory.Infrastructure;
 
@@ -25,6 +28,31 @@ public static class DependencyInjectionRegister
             options.UseNpgsql(connectionString);
         });
 
+        services.AddSingleton<IAmazonSQS>(sp =>
+        {
+            var useLocalStack = configuration.GetValue<bool>("AWS:UseLocalStack");
+
+            if (useLocalStack)
+            {
+                var serviceUrl = configuration["AWS:LocalStack:ServiceUrl"] ?? "http://localhost:4566";
+                var config = new AmazonSQSConfig { ServiceURL = serviceUrl };
+                return new AmazonSQSClient(config);
+            }
+
+            var profileName = Environment.GetEnvironmentVariable("AWS_PROFILE");
+            if (!string.IsNullOrEmpty(profileName))
+            {
+                var credentialProfileStoreChain = new CredentialProfileStoreChain();
+                if (credentialProfileStoreChain.TryGetProfile(profileName, out var profile))
+                {
+                    var credentials = profile.GetAWSCredentials(credentialProfileStoreChain);
+                    return new AmazonSQSClient(credentials, RegionEndpoint.GetBySystemName("ap-southeast-2"));
+                }
+            }
+
+            return new AmazonSQSClient(RegionEndpoint.GetBySystemName("ap-southeast-2"));
+        });
+
         services.AddScoped<PublishDomainEventsInterceptor>();
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
@@ -34,14 +62,10 @@ public static class DependencyInjectionRegister
         services.AddScoped<IEventBridgePublisher, EventBridgePublisher>();
 
         // SQS Polling Background Service
-        services.AddEventProcessor<OrderSubmitted, OrderSubmittedProcessor>(sp =>
+        services.Configure<QueueSettings>(configuration.GetSection("QueueSettings"));
+        services.AddMessaging<OrderSubmitted, OrderSubmittedProcessor>(sp =>
         {
-            var queueUrl = configuration["AWS:SQS:OrderSubmittedQueueUrl"];
-            if (string.IsNullOrEmpty(queueUrl))
-            {
-                throw new InvalidOperationException("SQS Queue URL for OrderSubmitted is not configured.");
-            }
-            return queueUrl;
+            return sp.GetRequiredService<IOptions<QueueSettings>>().Value.OrderSubmitted ?? string.Empty;
         });
 
         return services;
@@ -88,11 +112,13 @@ public static class DependencyInjectionRegister
         }
     }
 
-    public static IServiceCollection AddEventProcessor<TEvent, TProcessor>(
+    public static IServiceCollection AddMessaging<TEvent, TProcessor>(
         this IServiceCollection services,
         Func<IServiceProvider, string> queueUrlFactory)
             where TProcessor : class, IEventProcessor<TEvent>
     {
+
+
         services.AddScoped<IEventProcessor<TEvent>, TProcessor>();
 
         services.AddHostedService(sp =>

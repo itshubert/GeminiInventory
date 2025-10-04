@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -8,6 +9,39 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace GeminiInventory.Infrastructure.Messaging;
+
+/// <summary>
+/// Represents the AWS EventBridge event envelope that wraps the actual event data
+/// </summary>
+// internal sealed class EventBridgeEnvelope<T>
+// {
+//     [JsonPropertyName("version")]
+//     public string Version { get; set; } = default!;
+
+//     [JsonPropertyName("id")]
+//     public string Id { get; set; } = default!;
+
+//     [JsonPropertyName("detail-type")]
+//     public string DetailType { get; set; } = default!;
+
+//     [JsonPropertyName("source")]
+//     public string Source { get; set; } = default!;
+
+//     [JsonPropertyName("account")]
+//     public string Account { get; set; } = default!;
+
+//     [JsonPropertyName("time")]
+//     public DateTime Time { get; set; }
+
+//     [JsonPropertyName("region")]
+//     public string Region { get; set; } = default!;
+
+//     [JsonPropertyName("resources")]
+//     public List<string> Resources { get; set; } = new();
+
+//     [JsonPropertyName("detail")]
+//     public T Detail { get; set; } = default!;
+// }
 
 public sealed class SqsConsumerBackgroundService<TEvent, TProcessor> : BackgroundService
     where TProcessor : class,
@@ -76,11 +110,17 @@ public sealed class SqsConsumerBackgroundService<TEvent, TProcessor> : Backgroun
 
     private async Task ProcessMessageAsync(ChannelReader<Message> reader, CancellationToken stoppingToken)
     {
+        // Configure JSON options for case-insensitive deserialization
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         var readerTasks = Enumerable.Range(0, 5).Select(async (index) =>
         {
             _logger.LogInformation("Starting message processing for reader {Index}", index);
 
-            while (!stoppingToken.IsCancellationRequested)
+            while (await reader.WaitToReadAsync(stoppingToken))
             {
                 try
                 {
@@ -88,11 +128,15 @@ public sealed class SqsConsumerBackgroundService<TEvent, TProcessor> : Backgroun
                     var processor = scope.ServiceProvider.GetRequiredService<IEventProcessor<TEvent>>();
 
                     var message = await reader.ReadAsync(stoppingToken);
-                    var obj = JsonSerializer.Deserialize<TEvent>(message.Body);
 
-                    if (obj != null)
+                    // Deserialize the EventBridge envelope first, then extract the detail
+                    // var envelope = JsonSerializer.Deserialize<EventBridgeEnvelope<TEvent>>(message.Body, jsonOptions);
+                    var order = JsonSerializer.Deserialize<TEvent>(message.Body, jsonOptions);
+
+                    // if (envelope is not null && envelope.Detail is not null)
+                    if (order is not null)
                     {
-                        await processor.ProcessEventAsync(obj, stoppingToken);
+                        await processor.ProcessEventAsync(order, stoppingToken);
 
                         // Delete the message from the queue after successful processing
                         await _sqs.DeleteMessageAsync(_queueUrl, message.ReceiptHandle, stoppingToken);
