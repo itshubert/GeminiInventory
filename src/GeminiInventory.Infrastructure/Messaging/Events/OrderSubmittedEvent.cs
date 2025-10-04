@@ -1,6 +1,6 @@
 namespace GeminiInventory.Infrastructure.Messaging.Events;
 
-public sealed class OrderSubmitted
+public sealed class OrderSubmittedEvent
 {
     public Guid Id { get; init; }
     public Guid CustomerId { get; init; }

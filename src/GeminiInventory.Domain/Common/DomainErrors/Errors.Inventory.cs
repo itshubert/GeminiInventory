@@ -9,5 +9,9 @@ public static partial class Errors
         public static Error InvalidProductId => Error.Validation(
             code: "Inventory.InvalidProductId",
             description: "The provided product ID is invalid or does not exist.");
+
+        public static Error InsufficientStock => Error.Validation(
+            code: "Inventory.InsufficientStock",
+            description: "Insufficient stock available to fulfill the reservation.");
     }
 }

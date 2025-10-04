@@ -63,7 +63,7 @@ public static class DependencyInjectionRegister
 
         // SQS Polling Background Service
         services.Configure<QueueSettings>(configuration.GetSection("QueueSettings"));
-        services.AddMessaging<OrderSubmitted, OrderSubmittedProcessor>(sp =>
+        services.AddMessaging<OrderSubmittedEvent, OrderSubmittedEventProcessor>(sp =>
         {
             return sp.GetRequiredService<IOptions<QueueSettings>>().Value.OrderSubmitted ?? string.Empty;
         });

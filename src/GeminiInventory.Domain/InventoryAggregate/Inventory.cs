@@ -1,3 +1,4 @@
+using ErrorOr;
 using GeminiInventory.Domain.Common.Models;
 using GeminiInventory.Domain.InventoryAggregate.Events;
 using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
@@ -79,6 +80,43 @@ public sealed class Inventory : AggregateRoot<InventoryId>
             LastRestockDate,
             MinimumStockLevel,
             UpdatedAt));
+    }
+
+    public ErrorOr<Success> ReserveStock(Guid orderId, int quantity)
+    {
+        if (quantity <= 0)
+        {
+            return Error.Validation(
+                code: "InvalidQuantity",
+                description: "Quantity to reserve must be greater than zero.");
+        }
+
+        if (QuantityAvailable - quantity < 0)
+        {
+            // TODO: Raise OrderStockFailed domain event then handler publishes to SQS OrderStockFailed event which is consumed by Order service to update order status to 'StockFailed'
+            return Error.Failure(
+                code: "InsufficientStock",
+                description: "Not enough stock available to fulfill the reservation.");
+        }
+
+        QuantityAvailable -= quantity;
+        QuantityReserved += quantity;
+        UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Raise InventoryUpdatedDomainEvent to track inventory state changes
+        AddDomainEvent(new InventoryUpdatedDomainEvent(
+            Id,
+            ProductId,
+            QuantityAvailable,
+            QuantityReserved,
+            LastRestockDate,
+            MinimumStockLevel,
+            UpdatedAt));
+
+        // Note: InventoryReservedDomainEvent is raised at the command handler level
+        // after all items are reserved to ensure one event per order, not per item
+
+        return new Success();
     }
 
     // TODO: Publish to SQS InventoryReserved event which is consumed by Order service to update order status to 'InventoryReserved'
