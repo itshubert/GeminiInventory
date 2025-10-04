@@ -1,7 +1,10 @@
 ﻿using Amazon.EventBridge;
+using Amazon.SQS;
 using GeminiInventory.Application.Common.Messaging;
 using GeminiInventory.Application.Common.Persistence.Interfaces;
 using GeminiInventory.Infrastructure.Messaging;
+using GeminiInventory.Infrastructure.Messaging.EventProcessors;
+using GeminiInventory.Infrastructure.Messaging.Events;
 using GeminiInventory.Infrastructure.Persistence;
 using GeminiInventory.Infrastructure.Persistence.Interceptors;
 using GeminiInventory.Infrastructure.Persistence.Repositories;
@@ -30,7 +33,16 @@ public static class DependencyInjectionRegister
         ConfigureEventBridge(services, configuration);
         services.AddScoped<IEventBridgePublisher, EventBridgePublisher>();
 
-        // TODO: BackgroundService to poll SQS for OrderSubmitted
+        // SQS Polling Background Service
+        services.AddEventProcessor<OrderSubmitted, OrderSubmittedProcessor>(sp =>
+        {
+            var queueUrl = configuration["AWS:SQS:OrderSubmittedQueueUrl"];
+            if (string.IsNullOrEmpty(queueUrl))
+            {
+                throw new InvalidOperationException("SQS Queue URL for OrderSubmitted is not configured.");
+            }
+            return queueUrl;
+        });
 
         return services;
     }
@@ -74,5 +86,31 @@ public static class DependencyInjectionRegister
                 return sp;
             });
         }
+    }
+
+    public static IServiceCollection AddEventProcessor<TEvent, TProcessor>(
+        this IServiceCollection services,
+        Func<IServiceProvider, string> queueUrlFactory)
+            where TProcessor : class, IEventProcessor<TEvent>
+    {
+        services.AddScoped<IEventProcessor<TEvent>, TProcessor>();
+
+        services.AddHostedService(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<SqsConsumerBackgroundService<TEvent, TProcessor>>>();
+            var serviceScopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+            var sqs = sp.GetRequiredService<IAmazonSQS>();
+            var queueUrl = queueUrlFactory(sp);
+
+            logger.LogInformation("Starting SQS consumer for queue: {QueueUrl}", queueUrl);
+
+            return new SqsConsumerBackgroundService<TEvent, TProcessor>(
+                logger,
+                serviceScopeFactory,
+                sqs,
+                queueUrl);
+        });
+
+        return services;
     }
 }
