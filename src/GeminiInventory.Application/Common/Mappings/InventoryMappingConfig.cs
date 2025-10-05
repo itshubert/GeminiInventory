@@ -13,7 +13,6 @@ public sealed class InventoryMappingConfig : IRegister
             .Map(dest => dest, src => src);
 
         config.NewConfig<InventoryReservedDomainEvent, InventoryReservedIntegrationModel>()
-            .Map(dest => dest.InventoryId, src => src.InventoryId.Value)
             .Map(dest => dest, src => src);
     }
 }

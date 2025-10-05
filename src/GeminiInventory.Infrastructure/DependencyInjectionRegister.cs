@@ -112,7 +112,7 @@ public static class DependencyInjectionRegister
         }
     }
 
-    public static IServiceCollection AddMessaging<TEvent, TProcessor>(
+    private static IServiceCollection AddMessaging<TEvent, TProcessor>(
         this IServiceCollection services,
         Func<IServiceProvider, string> queueUrlFactory)
             where TProcessor : class, IEventProcessor<TEvent>

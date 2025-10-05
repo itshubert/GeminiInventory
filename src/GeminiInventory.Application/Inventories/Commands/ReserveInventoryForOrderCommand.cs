@@ -81,7 +81,6 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
 
             // All items successfully reserved - raise ONE domain event for the entire order
             var inventoryReservedEvent = new InventoryReservedDomainEvent(
-                InventoryId.CreateUnique(), // This represents the aggregate event, not a specific inventory
                 request.OrderId,
                 reservedItems);
 

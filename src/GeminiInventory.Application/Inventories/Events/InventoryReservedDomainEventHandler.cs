@@ -25,7 +25,7 @@ public sealed class InventoryReservedDomainEventHandler : INotificationHandler<I
 
     public async Task Handle(InventoryReservedDomainEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Handling InventoryReservedDomainEvent for InventoryId: {InventoryId}, OrderId: {OrderId}", notification.InventoryId, notification.OrderId);
+        _logger.LogInformation("Handling InventoryReservedDomainEvent for OrderId: {OrderId}", notification.OrderId);
 
         await _eventBridgePublisher.PublishAsync(
             detailType: "InventoryReserved",

@@ -4,7 +4,6 @@ using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
 namespace GeminiInventory.Domain.InventoryAggregate.Events;
 
 public sealed record InventoryReservedDomainEvent(
-    InventoryId InventoryId,
     Guid OrderId,
     IEnumerable<InventoryItemReserved> Items) : IDomainEvent;
 
