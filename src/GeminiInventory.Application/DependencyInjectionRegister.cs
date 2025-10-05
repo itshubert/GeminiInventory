@@ -1,4 +1,5 @@
-﻿using GeminiInventory.Application.Common.Behaviors;
+﻿using FluentValidation;
+using GeminiInventory.Application.Common.Behaviors;
 using Mapster;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,8 @@ public static class DependencyInjectionRegister
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
         services.AddMappings();
+
+        services.AddValidatorsFromAssembly(typeof(DependencyInjectionRegister).Assembly);
 
         services.AddScoped(
             typeof(IPipelineBehavior<,>),

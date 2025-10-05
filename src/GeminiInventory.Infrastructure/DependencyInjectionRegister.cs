@@ -1,5 +1,6 @@
 ﻿using Amazon;
 using Amazon.EventBridge;
+using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SQS;
 using GeminiInventory.Application.Common.Messaging;
@@ -28,15 +29,27 @@ public static class DependencyInjectionRegister
             options.UseNpgsql(connectionString);
         });
 
+        // Log AWS configuration on startup
+        services.AddSingleton(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<GeminiInventoryDbContext>>();
+            var useLocalStack = configuration.GetValue<bool>("AWS:UseLocalStack");
+            logger.LogInformation("AWS Configuration - UseLocalStack: {UseLocalStack}", useLocalStack);
+            return sp;
+        });
+
         services.AddSingleton<IAmazonSQS>(sp =>
         {
+            var logger = sp.GetRequiredService<ILogger<IAmazonSQS>>();
             var useLocalStack = configuration.GetValue<bool>("AWS:UseLocalStack");
 
             if (useLocalStack)
             {
                 var serviceUrl = configuration["AWS:LocalStack:ServiceUrl"] ?? "http://localhost:4566";
+                logger.LogInformation("Configuring AmazonSQSClient for LocalStack at {ServiceUrl}", serviceUrl);
                 var config = new AmazonSQSConfig { ServiceURL = serviceUrl };
-                return new AmazonSQSClient(config);
+                // Use AnonymousAWSCredentials for LocalStack - it doesn't validate credentials
+                return new AmazonSQSClient(new AnonymousAWSCredentials(), config);
             }
 
             var profileName = Environment.GetEnvironmentVariable("AWS_PROFILE");
@@ -82,6 +95,8 @@ public static class DependencyInjectionRegister
 
             services.AddAWSService<IAmazonEventBridge>(new Amazon.Extensions.NETCore.Setup.AWSOptions
             {
+                // Use AnonymousAWSCredentials for LocalStack - it doesn't validate credentials
+                Credentials = new AnonymousAWSCredentials(),
                 DefaultClientConfig =
                 {
                     ServiceURL = serviceUrl

@@ -1,8 +1,6 @@
 using ErrorOr;
 using GeminiInventory.Application.Common.Persistence.Interfaces;
 using GeminiInventory.Domain.InventoryAggregate.Events;
-using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
-using MapsterMapper;
 using MediatR;
 
 namespace GeminiInventory.Application.Inventories.Commands;
