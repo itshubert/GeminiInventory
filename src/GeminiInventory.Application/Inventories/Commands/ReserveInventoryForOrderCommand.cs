@@ -43,6 +43,7 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
                 {
                     failedItems.Add(new LineItemStockItemFailed(
                         ProductId: item.ProductId,
+                        QuantityAvailable: 0,
                         Reason: "Inventory not found"));
 
                     errors.Add(Error.Failure(
@@ -55,6 +56,7 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
                 {
                     failedItems.Add(new LineItemStockItemFailed(
                         ProductId: item.ProductId,
+                        QuantityAvailable: inventory.QuantityAvailable,
                         Reason: "Insufficient stock"));
 
                     errors.Add(Error.Failure(
@@ -83,7 +85,6 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
             // If there were any errors, return them without saving
             if (errors.Any())
             {
-                // TODO: Raise OrderStockFailedDomainEvent domain event then handler publishes to SQS OrderStockFailed event which is consumed by Order service to update order status to 'StockFailed'
                 await _inventoryRepository.RollbackTransactionAsync(cancellationToken);
 
                 var orderStockFailedEvent = new OrderStockFailedDomainEvent(

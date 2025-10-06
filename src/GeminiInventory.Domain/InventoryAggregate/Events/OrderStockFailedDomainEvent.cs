@@ -8,4 +8,5 @@ public sealed record OrderStockFailedDomainEvent(
 
 public sealed record LineItemStockItemFailed(
     Guid ProductId,
+    int QuantityAvailable,
     string Reason);

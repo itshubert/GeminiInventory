@@ -6,4 +6,5 @@ public sealed record OrderStockFailedIntegrationModel(
 
 public sealed record LineItemStockItemFailedIntegrationModel(
 Guid ProductId,
+int QuantityAvailable,
 string Reason);
