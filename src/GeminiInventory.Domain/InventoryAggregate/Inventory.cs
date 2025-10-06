@@ -93,7 +93,7 @@ public sealed class Inventory : AggregateRoot<InventoryId>
 
         if (QuantityAvailable - quantity < 0)
         {
-            // TODO: Raise OrderStockFailed domain event then handler publishes to SQS OrderStockFailed event which is consumed by Order service to update order status to 'StockFailed'
+            // TODO: Raise InventoryUpdateFailedDomainEvent domain event then handler publishes to SQS OrderStockFailed event which is consumed by Order service to update order status to 'StockFailed'
             return Error.Failure(
                 code: "InsufficientStock",
                 description: "Not enough stock available to fulfill the reservation.");
@@ -118,8 +118,4 @@ public sealed class Inventory : AggregateRoot<InventoryId>
 
         return new Success();
     }
-
-    // TODO: Publish to SQS InventoryReserved event which is consumed by Order service to update order status to 'InventoryReserved'
-    // TODO: Publish to SQS InventoryLevelChanged event which is consumed by other services (e.g. Catalog Service) 
-
 }

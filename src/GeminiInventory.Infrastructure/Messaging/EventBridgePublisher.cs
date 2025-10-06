@@ -75,7 +75,7 @@ public sealed class EventBridgePublisher : IEventBridgePublisher
                     return ValueTask.CompletedTask;
                 }
             })
-            .AddTimeout(TimeSpan.FromSeconds(10))
+            .AddTimeout(TimeSpan.FromSeconds(30))
             .Build();
     }
 

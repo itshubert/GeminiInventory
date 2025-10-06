@@ -14,5 +14,11 @@ public sealed class InventoryMappingConfig : IRegister
 
         config.NewConfig<InventoryReservedDomainEvent, InventoryReservedIntegrationModel>()
             .Map(dest => dest, src => src);
+
+        config.NewConfig<LineItemStockItemFailed, LineItemStockItemFailed>()
+            .Map(dest => dest, src => src);
+
+        config.NewConfig<OrderStockFailedDomainEvent, OrderStockFailedIntegrationModel>()
+            .Map(dest => dest, src => src);
     }
 }

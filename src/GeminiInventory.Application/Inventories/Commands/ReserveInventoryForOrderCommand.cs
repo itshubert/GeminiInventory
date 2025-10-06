@@ -29,6 +29,7 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
     {
         var errors = new List<Error>();
         var reservedItems = new List<InventoryItemReserved>();
+        var failedItems = new List<LineItemStockItemFailed>();
 
         await _inventoryRepository.BeginTransactionAsync(cancellationToken);
 
@@ -40,6 +41,10 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
                 var inventory = await _inventoryRepository.GetByProductIdForUpdateAsync(item.ProductId, cancellationToken);
                 if (inventory is null)
                 {
+                    failedItems.Add(new LineItemStockItemFailed(
+                        ProductId: item.ProductId,
+                        Reason: "Inventory not found"));
+
                     errors.Add(Error.Failure(
                         code: "Inventory.NotFound",
                         description: $"No inventory found for ProductId: {item.ProductId}"));
@@ -48,6 +53,10 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
 
                 if (inventory.QuantityAvailable < item.Quantity)
                 {
+                    failedItems.Add(new LineItemStockItemFailed(
+                        ProductId: item.ProductId,
+                        Reason: "Insufficient stock"));
+
                     errors.Add(Error.Failure(
                         code: "Inventory.InsufficientStock",
                         description: $"Insufficient stock for ProductId: {item.ProductId}. Requested: {item.Quantity}, Available: {inventory.QuantityAvailable}"));
@@ -74,6 +83,15 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
             // If there were any errors, return them without saving
             if (errors.Any())
             {
+                // TODO: Raise OrderStockFailedDomainEvent domain event then handler publishes to SQS OrderStockFailed event which is consumed by Order service to update order status to 'StockFailed'
+                await _inventoryRepository.RollbackTransactionAsync(cancellationToken);
+
+                var orderStockFailedEvent = new OrderStockFailedDomainEvent(
+                    request.OrderId,
+                    failedItems);
+
+                await _publisher.Publish(orderStockFailedEvent, cancellationToken);
+
                 return errors;
             }
 

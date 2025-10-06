@@ -1,5 +1,4 @@
 using GeminiInventory.Domain.Common.Models;
-using GeminiInventory.Domain.InventoryAggregate.ValueObjects;
 
 namespace GeminiInventory.Domain.InventoryAggregate.Events;
 
