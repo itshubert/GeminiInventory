@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler("/error");
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
