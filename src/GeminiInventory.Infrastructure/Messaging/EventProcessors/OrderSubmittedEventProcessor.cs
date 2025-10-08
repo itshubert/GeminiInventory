@@ -23,6 +23,15 @@ public sealed class OrderSubmittedEventProcessor : IEventProcessor<OrderSubmitte
 
         var reserveCommand = new ReserveInventoryForOrderCommand(
             OrderId: @event.Id,
+            ShippingAddress: new ShippingAddress(
+                FirstName: @event.ShippingAddress.FirstName,
+                LastName: @event.ShippingAddress.LastName,
+                AddressLine1: @event.ShippingAddress.AddressLine1,
+                AddressLine2: @event.ShippingAddress.AddressLine2,
+                City: @event.ShippingAddress.City,
+                State: @event.ShippingAddress.State,
+                PostalCode: @event.ShippingAddress.PostalCode,
+                Country: @event.ShippingAddress.Country),
             Items: @event.Items.Select(i => (i.ProductId, i.Quantity)));
 
         var result = await _mediator.Send(reserveCommand, cancellationToken);

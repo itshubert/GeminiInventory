@@ -9,7 +9,7 @@ public sealed class OrderSubmittedEvent
     public decimal TotalAmount { get; init; }
     public string Currency { get; init; } = string.Empty;
     public IEnumerable<OrderItem> Items { get; init; } = Array.Empty<OrderItem>();
-
+    public ShipippingAddress ShippingAddress { get; init; } = null!;
 }
 
 public sealed record OrderItem(
@@ -19,3 +19,13 @@ public sealed record OrderItem(
     int Quantity,
     decimal UnitPrice,
     decimal SubTotal);
+
+public sealed record ShipippingAddress(
+    string FirstName,
+    string LastName,
+    string AddressLine1,
+    string AddressLine2,
+    string City,
+    string State,
+    string PostalCode,
+    string Country);

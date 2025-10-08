@@ -7,7 +7,18 @@ namespace GeminiInventory.Application.Inventories.Commands;
 
 public sealed record ReserveInventoryForOrderCommand(
     Guid OrderId,
+    ShippingAddress ShippingAddress,
     IEnumerable<(Guid ProductId, int Quantity)> Items) : IRequest<ErrorOr<Unit>>;
+
+public sealed record ShippingAddress(
+    string FirstName,
+    string LastName,
+    string AddressLine1,
+    string AddressLine2,
+    string City,
+    string State,
+    string PostalCode,
+    string Country);
 
 public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveInventoryForOrderCommand, ErrorOr<Unit>>
 {
@@ -99,6 +110,15 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
             // All items successfully reserved - raise ONE domain event for the entire order
             var inventoryReservedEvent = new InventoryReservedDomainEvent(
                 request.OrderId,
+                new Domain.InventoryAggregate.Events.ShippingAddress(
+                    request.ShippingAddress.FirstName,
+                    request.ShippingAddress.LastName,
+                    request.ShippingAddress.AddressLine1,
+                    request.ShippingAddress.AddressLine2,
+                    request.ShippingAddress.City,
+                    request.ShippingAddress.State,
+                    request.ShippingAddress.PostalCode,
+                    request.ShippingAddress.Country),
                 reservedItems);
 
             // Publish the domain event
