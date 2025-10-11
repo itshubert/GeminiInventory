@@ -30,7 +30,7 @@ public sealed class OrderSubmittedEventProcessor : IEventProcessor<OrderSubmitte
                 AddressLine2: @event.ShippingAddress.AddressLine2,
                 City: @event.ShippingAddress.City,
                 State: @event.ShippingAddress.State,
-                PostalCode: @event.ShippingAddress.PostalCode,
+                PostCode: @event.ShippingAddress.PostCode,
                 Country: @event.ShippingAddress.Country),
             Items: @event.Items.Select(i => (i.ProductId, i.Quantity)));
 

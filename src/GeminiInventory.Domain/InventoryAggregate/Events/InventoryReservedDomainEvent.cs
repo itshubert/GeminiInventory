@@ -21,5 +21,5 @@ public sealed record ShippingAddress(
     string AddressLine2,
     string City,
     string State,
-    string PostalCode,
+    string PostCode,
     string Country);

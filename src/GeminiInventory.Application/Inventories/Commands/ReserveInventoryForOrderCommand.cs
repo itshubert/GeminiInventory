@@ -17,7 +17,7 @@ public sealed record ShippingAddress(
     string AddressLine2,
     string City,
     string State,
-    string PostalCode,
+    string PostCode,
     string Country);
 
 public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveInventoryForOrderCommand, ErrorOr<Unit>>
@@ -117,7 +117,7 @@ public sealed class ReserveInventoryForCommandHandler : IRequestHandler<ReserveI
                     request.ShippingAddress.AddressLine2,
                     request.ShippingAddress.City,
                     request.ShippingAddress.State,
-                    request.ShippingAddress.PostalCode,
+                    request.ShippingAddress.PostCode,
                     request.ShippingAddress.Country),
                 reservedItems);
 

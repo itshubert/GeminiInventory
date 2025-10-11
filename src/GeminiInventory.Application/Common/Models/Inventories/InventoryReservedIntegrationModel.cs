@@ -1,11 +1,11 @@
 namespace GeminiInventory.Application.Common.Models.Inventories;
 
 public sealed record InventoryReservedIntegrationModel(
-    Guid InventoryId,
     Guid OrderId,
     ShippingAddressIntegrationModel ShippingAddress,
     IEnumerable<InventoryModel> Items);
 
+// TODO: Remove ShippingAddress, OrderFulfillment gets this from OrderSubmitted event
 public sealed record ShippingAddressIntegrationModel(
     string FirstName,
     string LastName,
@@ -13,5 +13,5 @@ public sealed record ShippingAddressIntegrationModel(
     string AddressLine2,
     string City,
     string State,
-    string PostalCode,
+    string PostCode,
     string Country);
