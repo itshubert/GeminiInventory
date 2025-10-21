@@ -37,4 +37,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Health check endpoint for ECS
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
+    .WithName("HealthCheck")
+    .WithTags("Health");
+
 app.Run();
