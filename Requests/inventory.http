@@ -1,5 +1,9 @@
 @HostAddress=https://localhost:4007
 
+GET {{HostAddress}}/inventory/health
+
+###
+
 POST {{HostAddress}}/inventory/by-products
 Content-Type: application/json
 

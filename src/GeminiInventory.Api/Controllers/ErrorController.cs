@@ -14,7 +14,7 @@ public class ErrorController : ApiController
         _env = env;
     }
 
-    [Route("/error")]
+    [Route("/inventory/error")]
     [HttpGet, HttpPost, HttpPut, HttpDelete, HttpPatch] // Handle all HTTP methods
     public IActionResult Error()
     {

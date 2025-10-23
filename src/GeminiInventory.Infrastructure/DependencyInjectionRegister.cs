@@ -52,6 +52,10 @@ public static class DependencyInjectionRegister
                 return new AmazonSQSClient(new AnonymousAWSCredentials(), config);
             }
 
+            // Get region from configuration or environment variable
+            var region = configuration["AWS:Region"] ?? Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
+            logger.LogInformation("Configuring AmazonSQSClient for AWS region {Region}", region);
+
             var profileName = Environment.GetEnvironmentVariable("AWS_PROFILE");
             if (!string.IsNullOrEmpty(profileName))
             {
@@ -59,11 +63,11 @@ public static class DependencyInjectionRegister
                 if (credentialProfileStoreChain.TryGetProfile(profileName, out var profile))
                 {
                     var credentials = profile.GetAWSCredentials(credentialProfileStoreChain);
-                    return new AmazonSQSClient(credentials, RegionEndpoint.GetBySystemName("ap-southeast-2"));
+                    return new AmazonSQSClient(credentials, RegionEndpoint.GetBySystemName(region));
                 }
             }
 
-            return new AmazonSQSClient(RegionEndpoint.GetBySystemName("ap-southeast-2"));
+            return new AmazonSQSClient(RegionEndpoint.GetBySystemName(region));
         });
 
         services.AddScoped<PublishDomainEventsInterceptor>();
